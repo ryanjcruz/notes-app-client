@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { withRouter,Link } from 'react-router-dom';
 import { Nav,Navbar,NavItem } from 'react-bootstrap';
+import { CognitoUserPool, } from 'amazon-cognito-identity-js';
+import config from './config.js';
 import Routes from './Routes';
 import RouteNavItem from './components/RouteNavItem';
 import './App.css';
@@ -12,6 +14,7 @@ class App extends Component {
 
     this.state = {
       userToken: null,
+      isLoadingUserToken: true,
     };
   }
 
@@ -30,13 +33,56 @@ class App extends Component {
     this.updateUserToken(null);
   }
 
+  // store and load user from the browser session
+  getCurrentUser() {
+    const userPool = new CognitoUserPool({
+      UserPoolId: config.cognito.USER_POOL_ID,
+      ClientId: config.cognito.APP_CLIENT_ID,
+    });
+
+    return userPool.getCurrentUser();
+  }
+
+  getUserToken(currentUser) {
+    return new Promise((resolve, reject) => {
+      currentUser.getSession(function(err, session){
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(session.getIdToken().getJwtToken());
+      });
+    });
+  }
+
+  // load user token from session when the user refreshes
+  async componentDidMount() {
+    const currentUser = this.getCurrentUser();
+
+    if (currentUser === null) {
+      this.setState({isLoadingUserToken: false});
+      return;
+    }
+
+    try {
+      const userToken = await this.getUserToken(currentUser);
+      this.updateUserToken(userToken);
+    }
+    catch(e) {
+      alert(e);
+    }
+
+    this.setState({isLoadingUserToken: false});
+  }
+
   render () {
     const childProps = {
       userToken: this.state.userToken,
       updateUserToken: this.updateUserToken,
     };
 
-    return (
+    // hold off rendering the app till isLoadingToken is false
+    return ! this.state.isLoadingUserToken && (
       <div className="App container">
         <Navbar fluid collapseOnSelect>
           <Navbar.Header>
