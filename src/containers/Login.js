@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {
-  Button,
   FormGroup,
   FormControl,
   ControlLabel,
@@ -13,14 +12,17 @@ import {
   CognitoUser,
 } from 'amazon-cognito-identity-js';
 import { withRouter } from 'react-router-dom';
+import LoaderButton from '../components/LoaderButton';
+
 
 class Login extends Component {
   constructor(props) {
       super(props);
 
       this.state = {
-          username: '',
-          password: '',
+        isLoading: false,
+        username: '',
+        password: '',
       };
   }
 
@@ -37,6 +39,8 @@ class Login extends Component {
 
   handleSubmit = async (event) => {
       event.preventDefault();
+      // give the user some feedback while logging in
+      this.setState({ isLoading: true });
 
       try {
         const userToken = await this.login(this.state.username, this.state.password);
@@ -44,6 +48,7 @@ class Login extends Component {
         this.props.history.push('/');
       } catch(e) {
         alert(e);
+        this.setState({ isLoading: false });
       }
   }
 
@@ -90,13 +95,14 @@ class Login extends Component {
                   type="password"
                 />
               </FormGroup>
-              <Button
+              <LoaderButton
                 block
                 bsSize="large"
                 disabled={ ! this.validateForm() }
-                type="submit">
-                Login
-              </Button>
+                type="submit"
+                isLoading={this.state.isLoading}
+                text="Login" 
+                loadingText="Loggin in..." />
             </form>
           </div>
       );
