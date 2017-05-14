@@ -12,6 +12,7 @@ import {
   AuthenticationDetails,
   CognitoUser,
 } from 'amazon-cognito-identity-js';
+import { withRouter } from 'react-router-dom';
 
 class Login extends Component {
   constructor(props) {
@@ -40,6 +41,7 @@ class Login extends Component {
       try {
         const userToken = await this.login(this.state.username, this.state.password);
         this.props.updateUserToken(userToken);
+        this.props.history.push('/');
       } catch(e) {
         alert(e);
       }
@@ -101,4 +103,8 @@ class Login extends Component {
   }
 }
 
-export default Login;
+// use HOC (Higher Order Component) to add history
+// prop to our component.
+// Redirect now possible by using this.props.history.push('/') to
+// redirect to homepage
+export default withRouter(Login);
