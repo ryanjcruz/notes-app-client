@@ -9,3 +9,15 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: "PT Serif", serf;
 }
+
+/* Prevent zoom of form fields on focus on mobile browsers */
+select.form-control,
+textarea.form-control,
+input.form-control {
+  font-size: 16px;
+}
+
+/* Prevent mobile input from overflowing and adding a scrollbar */
+input[type=file] {
+  width: 100%;
+}
