@@ -29,7 +29,15 @@ class App extends Component {
     this.props.history.push(event.currentTarget.getAttribute('href'));
   }
 
+  // clear browser session on logout using
+  // AWS Cognito JS SDK signOut() function
   handleLogout = (event) => {
+    const currentUser = this.getCurrentUser();
+
+    if (currentUser !== null) {
+      currentUser.signOut();
+    }
+
     this.updateUserToken(null);
   }
 

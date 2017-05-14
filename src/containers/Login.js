@@ -36,7 +36,7 @@ class Login extends Component {
 
   handleSubmit = async (event) => {
       event.preventDefault();
-      console.log(this.props)
+
       try {
         const userToken = await this.login(this.state.username, this.state.password);
         this.props.updateUserToken(userToken);
