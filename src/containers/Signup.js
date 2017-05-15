@@ -6,6 +6,12 @@ import {
   FormControl,
   ControlLabel,
 } from 'react-bootstrap';
+import {
+  AuthenticationDetails,
+  CognitoUserPool,
+  CognitoUserAttribute,
+} from 'amazon-cognito-identity-js';
+import config from '../config.js';
 import LoaderButton from '../components/LoaderButton';
 import './Signup.css';
 
@@ -44,7 +50,16 @@ class Signup extends Component {
 
     this.setState({ isLoading: true });
 
-    this.setState({ newUser: 'test' });
+    // call signup function below to create a new user {newUser}
+    try {
+      const newUser = await this.signup(this.state.username, this.state.password);
+      this.setState({
+        newUser: newUser
+      });
+    } 
+    catch(e) {
+      alert(e);
+    }
 
     this.setState({ isLoading: false});
   }
@@ -53,6 +68,80 @@ class Signup extends Component {
     event.preventDefault();
 
     this.setState({ isLoading: true });
+
+    // call confirm function below to confirm user by using confirmation code entered
+    // when confirmed, cognito now knows that there's a new user that can login to the app
+    try {
+      await this.confirm(this.state.newUser, this.state.confirmationCode);
+      const userToken = await this.authenticate(
+        this.state.newUser,
+        this.state.username,
+        this.state.password,
+      );
+
+      // save userToken to the app's state
+      this.props.updateUserToken(userToken);
+      // redirect to hompage when confirmed
+      this.props.history.push('/');
+
+    }
+    catch(e) {
+      alert(e);
+      this.setState({ isLoading: false});
+    }
+  }
+
+  signup(username, password) {
+    // connect to cognito user pool
+    const userPool = new CognitoUserPool({
+      UserPoolId: config.cognito.USER_POOL_ID,
+      ClientId: config.cognito.APP_CLIENT_ID,
+    });
+
+    // pass email as username
+    const attributeEmail = new CognitoUserAttribute({ Name: 'email', Value: username });
+
+    // call signUp API from cognito user pool
+    return new Promise((resolve, reject) => (
+      userPool.signUp(username, password, [attributeEmail], null, (err, result) => {
+        if (err) {
+          reject(err);
+          return
+        }
+        
+        // resolve to new user
+        resolve(result.user);
+      })
+    ));
+  }
+
+  confirm(user, confirmationCode) {
+    return new Promise((resolve, reject) =>(
+      user.confirmRegistration(confirmationCode, true, function(err, result) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(result);
+      })
+    )); 
+  }
+
+  // returns the userToken of the new user
+  authenticate(user, username, password) {
+    const authenticationData = {
+      Username: username,
+      Password: password,
+    };
+    const authenticationDetails = new AuthenticationDetails(authenticationData);
+
+    return new Promise((resolve, reject) => (
+      user.authenticateUser(authenticationDetails, {
+        onSuccess: (result) => resolve(result.getIdToken().getJwtToken()),
+        onFailure: (err) => reject(err),
+      })
+    ));
+    
   }
 
 
