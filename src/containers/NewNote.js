@@ -7,7 +7,7 @@ import {
 } from 'react-bootstrap';
 import LoaderButton from '../components/LoaderButton';
 import config from '../config.js';
-import { invokeApig } from '../libs/awsLib';
+import { invokeApig, s3Upload } from '../libs/awsLib';
 import './NewNote.css';
 
 class NewNote extends Component {
@@ -50,8 +50,13 @@ class NewNote extends Component {
     // after the note has been created, redirect ot the
     // homepage
     try {
+      // try to upload first before creating the note
+      // gets the returned URL and combines that with the note object
+      const uploadFilename = (this.file) ? (await s3Upload(this.file, this.props.userToken)).Location : null;
+
       await this.createNote({
         content: this.state.content,
+        attachment: uploadFilename,
       });
       this.props.history.push('/');
     } 
