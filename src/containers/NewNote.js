@@ -7,6 +7,7 @@ import {
 } from 'react-bootstrap';
 import LoaderButton from '../components/LoaderButton';
 import config from '../config.js';
+import { invokeApig } from '../libs/awsLib';
 import './NewNote.css';
 
 class NewNote extends Component {
@@ -44,6 +45,29 @@ class NewNote extends Component {
     }
 
     this.setState({ isLoading: true });
+
+    // call createNote which in turns call the Apig
+    // after the note has been created, redirect ot the
+    // homepage
+    try {
+      await this.createNote({
+        content: this.state.content,
+      });
+      this.props.history.push('/');
+    } 
+    catch(e) {
+      alert(e);
+      this.setState({ isLoading: false });
+    }
+  }
+
+  // pass the note object (content) as body
+  createNote(note) {
+    return invokeApig({
+      path: '/notes',
+      method: 'POST',
+      body: note,
+    }, this.props.userToken);
   }
 
   render() {
