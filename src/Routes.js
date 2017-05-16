@@ -8,6 +8,9 @@ import Signup from './containers/Signup';
 import NewNote from './containers/NewNote';
 import Notes from './containers/Notes';
 
+import AuthenticatedRoute from './components/AuthenticatedRoute';
+import UnauthenticatedRoute from './components/UnauthenticatedRoute';
+
 import AppliedRoute from './components/AppliedRoute';
 
 export default ({ childProps }) => (
@@ -17,11 +20,14 @@ export default ({ childProps }) => (
             component
         */}
         <AppliedRoute path="/" exact component={Home} props={childProps} />
-        <AppliedRoute path="/login" exact component={Login} props={childProps} />
-        <AppliedRoute path="/signup" exact component={Signup} props={childProps} />
+        {/* swith to be using Authenticated and Unauthenticated routes */}
+        <UnauthenticatedRoute path="/login" exact component={Login} props={childProps} />
+        <UnauthenticatedRoute path="/signup" exact component={Signup} props={childProps} />
+        {/* Next route for individual note would be using AuthenticatedRoute */}
+        <AuthenticatedRoute path="/notes/new" exact component={NewNote} props={childProps} />
         {/* put /notes/new above the /notes/:id so it can catch /notes/new */}
-        <AppliedRoute path="/notes/new" exact component={NewNote} props={childProps} />
-        <AppliedRoute path="/notes/:id" exact component={Notes} props={childProps} />
+        <AuthenticatedRoute path="/notes/:id" exact component={Notes} props={childProps} />
+
         {/* Finally, catch all unmatched routes */}
         <Route component={NotFound} />
     </Switch>
