@@ -105,6 +105,14 @@ class Notes extends Component {
     }
   }
 
+  // delete note with the supplied ID
+  deleteNote() {
+    return invokeApig({
+      path: `/notes/${this.props.match.params.id}`,
+      method: 'DELETE',
+    }, this.props.userToken);
+  }
+
   handleDelete = async (event) => {
     event.preventDefault();
 
@@ -115,6 +123,17 @@ class Notes extends Component {
     }
 
     this.setState({ isDeleting: true });
+
+    // make a delete request to the delete API
+    // redirect to homepage
+    try {
+      await this.deleteNote();
+      this.props.history.push('/');
+    }
+    catch(e) {
+      alert(e);
+      this.setState({ isDeleting: false });
+    }
   }
 
   // render only if this.state.note is available
